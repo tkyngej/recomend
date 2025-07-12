@@ -1,0 +1,57 @@
+<script>
+  const keywordAlias = {
+    '感動系': ['感動', '泣ける', '涙腺崩壊'],
+    '泣ける': ['泣ける', '涙が止まらない'],
+    '脂肪燃焼': ['脂肪燃焼', 'ダイエット', '燃焼系'],
+    '元気が出る': ['元気が出る', 'モチベーションが上がる'],
+    '怖い': ['ホラー', '恐怖体験', '怖い']
+  };
+
+  function expandKeyword(keyword) {
+    if (keywordAlias[keyword]) {
+      return keywordAlias[keyword].map(k => `"${k}"`).join(' OR ');
+    }
+    return `"${keyword}"`;
+  }
+
+  function parsePreference(input) {
+    const parts = input.split(/[、,]/).map(s => s.trim());
+    const likes = [];
+    const dislikes = [];
+    parts.forEach(part => {
+      if (part.includes('は嫌い')) {
+        dislikes.push(part.replace('は嫌い', '').trim());
+      } else if (part.includes('が好き')) {
+        likes.push(part.replace('が好き', '').trim());
+      } else {
+        likes.push(part); // デフォルトで肯定扱い
+      }
+    });
+    return { likes, dislikes };
+  }
+
+  function search() {
+    const genre = document.getElementById('genre').value;
+    const sub = document.getElementById('subgenre').value;
+    const feature = document.getElementById('feature').value;
+    const preference = document.getElementById('preference').value;
+    const location = document.getElementById('location').value;
+
+    if (!genre || !options[genre]) {
+      alert('ジャンルを選んでください');
+      return;
+    }
+
+    const { likes, dislikes } = parsePreference(preference);
+    const likeQuery = likes.map(word => `"${word}"`).join(' ');
+    const dislikeQuery = dislikes.map(word => `-${word}`).join(' ');
+
+    const subQuery = expandKeyword(sub);
+    const featureQuery = expandKeyword(feature);
+    const sites = options[genre].sites.join(' OR ');
+
+    const query = `${subQuery} ${featureQuery} ${likeQuery} ${dislikeQuery} "${location}" (${sites})`;
+    const url = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+    window.open(url, '_blank');
+  }
+</script>
